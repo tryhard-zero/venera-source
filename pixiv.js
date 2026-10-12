@@ -3,11 +3,11 @@ class Pixiv extends ComicSource {
 
     key = "pixiv"
 
-    version = "0.4.2"
+    version = "0.4.3"
 
     minAppVersion = "1.6.0"
 
-    url = "https://cdn.jsdelivr.net/gh/venera-app/venera-configs@main/pixiv.js"
+    url = "https://cdn.jsdelivr.net/gh/tryhard-zero/venera-source@main/pixiv.js"
 
     BASE_API = "https://app-api.pixiv.net"
 
@@ -35,6 +35,15 @@ class Pixiv extends ComicSource {
 
     get oauthUrl() {
         return "https://" + this.oauthHost
+    }
+
+    oauthPost(body) {
+        return Network.post(
+            this.oauthUrl + '/auth/token',
+            this.buildHeaders(false, "application/x-www-form-urlencoded"),
+            body,
+            { http_client: 'dart.io' },
+        )
     }
 
     isoTime() {
@@ -239,7 +248,7 @@ class Pixiv extends ComicSource {
         }
         let body = `client_id=${this.CLIENT_ID}&client_secret=${this.CLIENT_SECRET}` +
             `&grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}&include_policy=true`
-        let res = await Network.post(this.oauthUrl + '/auth/token', this.buildHeaders(false, "application/x-www-form-urlencoded"), body)
+        let res = await this.oauthPost(body)
         if (res.status !== 200) {
             throw `Token refresh failed: ${res.status} - ${this.parseAuthError(res.body)}`
         }
@@ -313,8 +322,7 @@ class Pixiv extends ComicSource {
                     `&grant_type=password&username=${encodeURIComponent(account)}` +
                     `&password=${encodeURIComponent(pwd)}` +
                     `&Device_token=pixiv&get_secure_url=true&include_policy=true`
-                let res = await Network.post(source.oauthUrl + '/auth/token',
-                    source.buildHeaders(false, "application/x-www-form-urlencoded"), body)
+                let res = await source.oauthPost(body)
                 if (res.status !== 200) {
                     let msg = source.parseAuthError(res.body)
                     if (/captcha|verify|challenge/i.test(msg)) {
@@ -354,7 +362,7 @@ class Pixiv extends ComicSource {
                         `&code_verifier=${encodeURIComponent(verifier)}` +
                         `&redirect_uri=${encodeURIComponent(source.BASE_API + '/web/v1/users/auth/pixiv/callback')}` +
                         `&include_policy=true`
-                    let res = await Network.post(source.oauthUrl + '/auth/token', source.buildHeaders(false, "application/x-www-form-urlencoded"), body)
+                    let res = await source.oauthPost(body)
                     if (res.status !== 200) {
                         throw 'Login failed: ' + source.parseAuthError(res.body)
                     }
@@ -1303,8 +1311,7 @@ class Pixiv extends ComicSource {
                             `&grant_type=password&username=${encodeURIComponent(acc.username)}` +
                             `&password=${encodeURIComponent(acc.password)}` +
                             `&Device_token=pixiv&get_secure_url=true&include_policy=true`
-                        let res = await Network.post(this.oauthUrl + '/auth/token',
-                            this.buildHeaders(false, "application/x-www-form-urlencoded"), body)
+                        let res = await this.oauthPost(body)
                         if (res.status === 200) {
                             this.saveToken(JSON.parse(res.body), i + 1)
                             ok++
