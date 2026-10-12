@@ -7,7 +7,7 @@ class Pixiv extends ComicSource {
 
     minAppVersion = "1.6.0"
 
-    url = "https://cdn.jsdelivr.net/gh/tryhard-zero/venera-source@main/pixiv.js"
+    url = "https://raw.githubusercontent.com/tryhard-zero/venera-source/main/pixiv.js"
 
     BASE_API = "https://app-api.pixiv.net"
 
