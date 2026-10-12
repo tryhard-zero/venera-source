@@ -3,7 +3,7 @@ class Pixiv extends ComicSource {
 
     key = "pixiv"
 
-    version = "0.4.1"
+    version = "0.4.2"
 
     minAppVersion = "1.6.0"
 
@@ -18,6 +18,8 @@ class Pixiv extends ComicSource {
     CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT"
 
     CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj"
+
+    APP_VERSION = "5.0.166"
 
     get apiHost() {
         return (this.loadSetting('apiHost') || "app-api.pixiv.net").replace(/^https?:\/\//, '').replace(/\/$/, '')
@@ -109,10 +111,10 @@ class Pixiv extends ComicSource {
         let headers = {
             "X-Client-Time": time,
             "X-Client-Hash": this.sign(time),
-            "User-Agent": "PixivAndroidApp/5.0.155 (Android 10.0; Pixel C)",
+            "User-Agent": `PixivAndroidApp/${this.APP_VERSION} (Android 10.0; Pixel C)`,
             "App-OS": "Android",
             "App-OS-Version": "Android 10.0",
-            "App-Version": "5.0.166",
+            "App-Version": this.APP_VERSION,
             "Accept-Language": "zh-CN",
         }
         if (contentType) {
@@ -239,9 +241,18 @@ class Pixiv extends ComicSource {
             `&grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}&include_policy=true`
         let res = await Network.post(this.oauthUrl + '/auth/token', this.buildHeaders(false, "application/x-www-form-urlencoded"), body)
         if (res.status !== 200) {
-            throw 'Login expired'
+            throw `Token refresh failed: ${res.status} - ${this.parseAuthError(res.body)}`
         }
-        this.saveToken(JSON.parse(res.body), index)
+        let json
+        try {
+            json = JSON.parse(res.body)
+        } catch (e) {
+            throw 'Token refresh failed: invalid OAuth response'
+        }
+        if (!json.access_token || !json.refresh_token) {
+            throw 'Token refresh failed: OAuth response is missing tokens'
+        }
+        this.saveToken(json, index)
     }
 
     preparePkce() {
