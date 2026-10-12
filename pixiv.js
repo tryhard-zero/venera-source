@@ -3,7 +3,7 @@ class Pixiv extends ComicSource {
 
     key = "pixiv"
 
-    version = "0.4.3"
+    version = "0.4.4"
 
     minAppVersion = "1.6.0"
 
@@ -38,11 +38,12 @@ class Pixiv extends ComicSource {
     }
 
     oauthPost(body) {
+        let headers = this.buildHeaders(false, "application/x-www-form-urlencoded")
+        headers['http_client'] = 'dart.io'
         return Network.post(
             this.oauthUrl + '/auth/token',
-            this.buildHeaders(false, "application/x-www-form-urlencoded"),
+            headers,
             body,
-            { http_client: 'dart.io' },
         )
     }
 
